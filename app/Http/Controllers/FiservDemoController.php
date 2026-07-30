@@ -26,6 +26,7 @@ class FiservDemoController extends Controller
             'configured' => FiservCommerceHub::isConfigured(),
             'result' => session('result'),
             'error' => session('error'),
+            'lastTransactionId' => session('last_transaction_id'),
         ]);
     }
 
@@ -51,10 +52,12 @@ class FiservDemoController extends Controller
 
             $result = FiservCommerceHub::charge($chargeRequest);
 
-            return redirect()->route('fiserv.demo.index')->with('result', [
+            return $this->rememberResult([
                 'action' => 'charge',
                 'approved' => $result->isApproved(),
+                'status_label' => $result->status->label(),
                 'transaction_id' => $result->transactionId,
+                'amount' => $validated['amount'],
                 'failure_reason' => $result->failureReason,
                 'raw' => $result->rawResponse,
             ]);
@@ -73,10 +76,13 @@ class FiservDemoController extends Controller
         try {
             $result = FiservCommerceHub::refund($validated['transaction_id'], (float) $validated['amount']);
 
-            return redirect()->route('fiserv.demo.index')->with('result', [
+            return $this->rememberResult([
                 'action' => 'refund',
                 'approved' => $result->isApproved(),
+                'status_label' => $result->status->label(),
                 'transaction_id' => $result->transactionId,
+                'amount' => $validated['amount'],
+                'failure_reason' => $result->failureReason,
                 'raw' => $result->rawResponse,
             ]);
         } catch (Throwable $exception) {
@@ -93,14 +99,37 @@ class FiservDemoController extends Controller
         try {
             $result = FiservCommerceHub::inquire($validated['transaction_id']);
 
-            return redirect()->route('fiserv.demo.index')->with('result', [
+            return $this->rememberResult([
                 'action' => 'inquire',
-                'status' => $result->status->label(),
+                'approved' => $result->isApproved(),
+                'status_label' => $result->status->label(),
+                'transaction_id' => $result->transactionId,
+                'amount' => data_get($result->rawResponse, 'paymentReceipt.approvedAmount.total'),
+                'failure_reason' => $result->failureReason,
                 'raw' => $result->rawResponse,
             ]);
         } catch (Throwable $exception) {
             return redirect()->route('fiserv.demo.index')->with('error', $exception->getMessage());
         }
+    }
+
+    /**
+     * Flash the result to the session and remember the transaction id so the
+     * Refund/Status inquiry forms can auto-fill it on the next page load —
+     * the natural next action after a charge is almost always to refund or
+     * check the same transaction.
+     *
+     * @param  array<string, mixed>  $result
+     */
+    protected function rememberResult(array $result): RedirectResponse
+    {
+        $redirect = redirect()->route('fiserv.demo.index')->with('result', $result);
+
+        if (! empty($result['transaction_id'])) {
+            $redirect->with('last_transaction_id', $result['transaction_id']);
+        }
+
+        return $redirect;
     }
 
     public function webhookLogs(): View
