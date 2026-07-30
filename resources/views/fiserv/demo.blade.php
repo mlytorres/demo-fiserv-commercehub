@@ -85,6 +85,8 @@
 </head>
 <body>
     <nav class="top-links">
+        <a href="{{ route('fiserv.demo.invoices') }}">Invoices / payment links →</a>
+        &nbsp;·&nbsp;
         <a href="{{ route('fiserv.demo.transactions') }}">View transaction history →</a>
         &nbsp;·&nbsp;
         <a href="{{ route('fiserv.demo.webhook-logs') }}">View webhook logs →</a>
