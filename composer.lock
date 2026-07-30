@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "36793882908b6cbdd344b5a4840231db",
+    "content-hash": "bfeb3b72e9c82ec34bd23ad5cf8c8098",
     "packages": [
         {
             "name": "brick/math",
@@ -2031,6 +2031,91 @@
                 }
             ],
             "time": "2026-03-08T20:05:35+00:00"
+        },
+        {
+            "name": "mlytorres/laravel-fiserv-commercehub",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:mlytorres/laravel-fiserv-commercehub.git",
+                "reference": "0c324b2b5f6be1aa2b4c8861472b80484e3a4b08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mlytorres/laravel-fiserv-commercehub/zipball/0c324b2b5f6be1aa2b4c8861472b80484e3a4b08",
+                "reference": "0c324b2b5f6be1aa2b4c8861472b80484e3a4b08",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^11.0|^12.0|^13.0",
+                "illuminate/http": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mlytorres\\FiservCommerceHub\\FiservCommerceHubServiceProvider"
+                    ],
+                    "aliases": {
+                        "FiservCommerceHub": "Mlytorres\\FiservCommerceHub\\Facades\\FiservCommerceHub"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mlytorres\\FiservCommerceHub\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Mlytorres\\FiservCommerceHub\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "vendor/bin/pest"
+                ],
+                "test-coverage": [
+                    "vendor/bin/pest --coverage"
+                ],
+                "format": [
+                    "vendor/bin/pint"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Yasiel Llerandi",
+                    "email": "ytorres@miamilifecosmetic.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel package for Fiserv Commerce Hub payment processing (Bank of America Merchant Services) - online charges, refunds, and webhooks",
+            "homepage": "https://github.com/mlytorres/laravel-fiserv-commercehub",
+            "keywords": [
+                "bank of america",
+                "commercehub",
+                "fiserv",
+                "laravel",
+                "payment",
+                "payment-gateway"
+            ],
+            "support": {
+                "source": "https://github.com/mlytorres/laravel-fiserv-commercehub/tree/main",
+                "issues": "https://github.com/mlytorres/laravel-fiserv-commercehub/issues"
+            },
+            "time": "2026-07-30T16:47:19+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -8289,7 +8374,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "mlytorres/laravel-fiserv-commercehub": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
