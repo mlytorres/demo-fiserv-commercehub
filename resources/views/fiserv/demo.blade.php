@@ -84,7 +84,11 @@
     </style>
 </head>
 <body>
-    <nav class="top-links"><a href="{{ route('fiserv.demo.webhook-logs') }}">View webhook logs →</a></nav>
+    <nav class="top-links">
+        <a href="{{ route('fiserv.demo.transactions') }}">View transaction history →</a>
+        &nbsp;·&nbsp;
+        <a href="{{ route('fiserv.demo.webhook-logs') }}">View webhook logs →</a>
+    </nav>
 
     <h1>Fiserv Commerce Hub</h1>
     <p class="subtitle">Sandbox test harness — charge, refund, and inquire against the real Commerce Hub sandbox.</p>
