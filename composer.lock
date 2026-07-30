@@ -2038,12 +2038,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:mlytorres/laravel-fiserv-commercehub.git",
-                "reference": "0c324b2b5f6be1aa2b4c8861472b80484e3a4b08"
+                "reference": "924820ff5cf04b8848903b384043a4c9bc2427d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mlytorres/laravel-fiserv-commercehub/zipball/0c324b2b5f6be1aa2b4c8861472b80484e3a4b08",
-                "reference": "0c324b2b5f6be1aa2b4c8861472b80484e3a4b08",
+                "url": "https://api.github.com/repos/mlytorres/laravel-fiserv-commercehub/zipball/924820ff5cf04b8848903b384043a4c9bc2427d6",
+                "reference": "924820ff5cf04b8848903b384043a4c9bc2427d6",
                 "shasum": ""
             },
             "require": {
@@ -2115,7 +2115,7 @@
                 "source": "https://github.com/mlytorres/laravel-fiserv-commercehub/tree/main",
                 "issues": "https://github.com/mlytorres/laravel-fiserv-commercehub/issues"
             },
-            "time": "2026-07-30T16:47:19+00:00"
+            "time": "2026-07-30T18:54:52+00:00"
         },
         {
             "name": "monolog/monolog",
