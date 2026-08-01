@@ -76,8 +76,25 @@ class FiservPaymentLinkController extends Controller
             ]);
         }
 
+        // Simulation mode mints a fake SIM-SESSION-xxxx above, but Commerce Hub's
+        // real hosted checkout.js only exists on Fiserv's own servers — it would
+        // reject that fake session immediately. So instead of loading the real SDK
+        // against fake credentials (guaranteed failure), render a stand-in panel
+        // that lets a tester pick the outcome and jumps straight to complete()
+        // with the same query params Commerce Hub itself would redirect back with.
+        // This is what makes the whole invoice -> pay -> complete loop testable
+        // today, before VAS/Hosted Checkout access is live.
+        if (config('fiserv.simulate')) {
+            return view('fiserv.pay', [
+                'invoice' => $invoice,
+                'simulated' => true,
+                'sessionId' => $session->sessionId,
+            ]);
+        }
+
         return view('fiserv.pay', [
             'invoice' => $invoice,
+            'simulated' => false,
             'credentials' => $session->toSdkCredentials(
                 apiKey: (string) config('fiserv.credentials.api_key'),
                 merchantId: (string) config('fiserv.credentials.merchant_id'),
