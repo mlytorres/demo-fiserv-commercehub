@@ -1,23 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Fiserv Webhook Logs</title>
-    <style>
-        body { font-family: -apple-system, Segoe UI, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e0e0e0; }
-        .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        .processed { background: #e6f4ea; color: #1e7e34; }
-        .declined { background: #fdecea; color: #b3261e; }
-        .invalid_signature { background: #fff4e5; color: #a35a00; }
-        a { color: #0a5c36; }
-    </style>
-</head>
-<body>
-    <p><a href="{{ route('fiserv.demo.index') }}">← Back</a></p>
+@extends('fiserv.layout')
+
+@section('title', 'Fiserv Webhook Logs')
+@section('body_class', 'wide')
+
+@section('content')
     <h1>Fiserv Webhook Logs</h1>
-    <p>Point an ngrok tunnel at this app and set <code>https://your-tunnel.ngrok.io/fiserv/webhook</code> as the webhook URL in your Commerce Hub sandbox subscription to see notifications land here.</p>
+    <p class="subtitle">Point an ngrok tunnel at this app and set <code>https://your-tunnel.ngrok.io/fiserv/webhook</code> as the webhook URL in your Commerce Hub sandbox subscription to see notifications land here.</p>
 
     <table>
         <thead>
@@ -39,5 +27,4 @@
     </table>
 
     {{ $logs->links() }}
-</body>
-</html>
+@endsection

@@ -84,8 +84,11 @@
     },
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/mlytorres/laravel-fiserv-commercehub"
+            "type": "path",
+            "url": "../miamilife-crm/packages/laravel-fiserv-commercehub",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "minimum-stability": "stable",

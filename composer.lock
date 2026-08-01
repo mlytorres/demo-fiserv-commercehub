@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bfeb3b72e9c82ec34bd23ad5cf8c8098",
+    "content-hash": "ce18807da5039459f1b01e5f5b1db7a4",
     "packages": [
         {
             "name": "brick/math",
@@ -2035,16 +2035,10 @@
         {
             "name": "mlytorres/laravel-fiserv-commercehub",
             "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "git@github.com:mlytorres/laravel-fiserv-commercehub.git",
-                "reference": "8da57ef50f24288a5da5b75a3f15c122dd379af6"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mlytorres/laravel-fiserv-commercehub/zipball/8da57ef50f24288a5da5b75a3f15c122dd379af6",
-                "reference": "8da57ef50f24288a5da5b75a3f15c122dd379af6",
-                "shasum": ""
+                "type": "path",
+                "url": "../miamilife-crm/packages/laravel-fiserv-commercehub",
+                "reference": "8da57ef50f24288a5da5b75a3f15c122dd379af6"
             },
             "require": {
                 "illuminate/contracts": "^11.0|^12.0|^13.0",
@@ -2058,7 +2052,6 @@
                 "pestphp/pest": "^3.0",
                 "pestphp/pest-plugin-laravel": "^3.0"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -2111,11 +2104,10 @@
                 "payment",
                 "payment-gateway"
             ],
-            "support": {
-                "source": "https://github.com/mlytorres/laravel-fiserv-commercehub/tree/main",
-                "issues": "https://github.com/mlytorres/laravel-fiserv-commercehub/issues"
-            },
-            "time": "2026-07-30T21:41:51+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "monolog/monolog",

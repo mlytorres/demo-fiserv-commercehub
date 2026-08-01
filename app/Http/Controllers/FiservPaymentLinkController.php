@@ -29,6 +29,11 @@ class FiservPaymentLinkController extends Controller
         ]);
     }
 
+    /**
+     * Create the invoice row only — no Commerce Hub call happens here. The
+     * link this generates just points at pay() below, which is where a
+     * session actually gets minted (on demand, when someone opens it).
+     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([

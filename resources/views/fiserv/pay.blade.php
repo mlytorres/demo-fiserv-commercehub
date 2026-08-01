@@ -1,25 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Pay invoice — {{ $invoice->description ?? 'Fiserv demo' }}</title>
-    <style>
-        body { font-family: -apple-system, "Segoe UI", sans-serif; max-width: 480px; margin: 60px auto; padding: 0 20px; color: #1a1a1a; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        .amount { font-size: 28px; font-weight: 700; margin: 10px 0 20px; }
-        .subtitle { color: #666; font-size: 13px; }
-        #checkout-container { margin-top: 20px; min-height: 320px; border: 1px solid #e3e3e3; border-radius: 10px; padding: 12px; }
-        #checkout-status { font-size: 13px; color: #666; margin-top: 10px; }
-    </style>
-</head>
-<body>
+@extends('fiserv.layout')
+
+@section('title', 'Pay invoice — ' . ($invoice->description ?? 'Fiserv demo'))
+@section('body_class', 'narrow')
+@section('nav')<!-- customer-facing page: no internal staff nav -->@endsection
+
+@push('styles')
+    #checkout-container { margin-top: 20px; min-height: 320px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+    #checkout-status { font-size: 13px; color: #666; margin-top: 10px; }
+    .amount { font-size: 28px; font-weight: 700; margin: 10px 0 20px; }
+@endpush
+
+@section('content')
     <h1>{{ $invoice->description ?? 'Payment' }}</h1>
     <p class="subtitle">Invoice link — pay securely below.</p>
     <div class="amount">${{ number_format((float) $invoice->amount, 2) }}</div>
 
     <div id="checkout-container"></div>
     <div id="checkout-status">Loading secure checkout…</div>
+@endsection
 
+@push('scripts')
     <script src="{{ $sdkUrl }}"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
@@ -44,5 +44,4 @@
             }
         });
     </script>
-</body>
-</html>
+@endpush

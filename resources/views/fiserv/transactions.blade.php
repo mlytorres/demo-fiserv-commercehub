@@ -1,25 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Fiserv Transaction History</title>
-    <style>
-        body { font-family: -apple-system, Segoe UI, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e0e0e0; }
-        .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
-        .badge.approved { background: #e6f4ea; color: #1e7e34; }
-        .badge.declined { background: #fdecea; color: #b3261e; }
-        .badge.pending  { background: #fff4e0; color: #8a5a00; }
-        .action { text-transform: capitalize; }
-        code { font-size: 12px; }
-        a { color: #0a5c36; }
-    </style>
-</head>
-<body>
-    <p><a href="{{ route('fiserv.demo.index') }}">← Back</a></p>
+@extends('fiserv.layout')
+
+@section('title', 'Fiserv Transaction History')
+@section('body_class', 'wide')
+
+@section('content')
     <h1>Fiserv Transaction History</h1>
-    <p>Every charge, refund, and status inquiry attempted through this demo's UI — including ones that failed before reaching Commerce Hub.</p>
+    <p class="subtitle">Every charge, pre-auth, capture, void, refund, and status inquiry attempted through this demo's UI — including ones that failed before reaching Commerce Hub.</p>
 
     <table>
         <thead>
@@ -44,7 +30,7 @@
             @endphp
             <tr>
                 <td>{{ $transaction->created_at }}</td>
-                <td class="action">{{ $transaction->action }}</td>
+                <td>{{ ucwords(str_replace('_', ' ', $transaction->action)) }}</td>
                 <td><span class="badge {{ $badgeClass }}">{{ $transaction->status_label ?? '—' }}</span></td>
                 <td><code>{{ $transaction->transaction_id ?? '—' }}</code></td>
                 <td><code>{{ $transaction->order_id ?? '—' }}</code></td>
@@ -58,5 +44,4 @@
     </table>
 
     {{ $transactions->links() }}
-</body>
-</html>
+@endsection

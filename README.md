@@ -1,58 +1,119 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Fiserv Commerce Hub — Sandbox Demo
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A small Laravel app for hand-testing [`mlytorres/laravel-fiserv-commercehub`](../miamilife-crm/packages/laravel-fiserv-commercehub) against the real Fiserv Commerce Hub sandbox before that package gets wired into [MiamiLife CRM](../miamilife-crm). This is a test harness, not production code — no real patients, no real money, built for **Miami Life Cosmetic Center**'s team to click through every payment operation and see exactly what Commerce Hub sends back.
 
-## About Laravel
+Everything here runs against Fiserv's live cert sandbox (not mocks) unless simulation mode is on — see [Simulation mode](#simulation-mode) below.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What's implemented
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Charge (sale)** — auth + capture in one step
+- **Pre-Auth + Capture** — hold funds now, capture later
+- **Void** — full or partial, with a reversal-reason picker, same-day/pre-settlement only
+- **Refund** — against an already-settled transaction
+- **Status inquiry** — look up any transaction id
+- **Test-card presets** — real Fiserv-documented sandbox cards for approvals per network, plus CVV/AVS match-response simulation (there's no self-service decline simulator in this sandbox tier — see the note on the Charge tab)
+- **Invoices / payment links** — generates a shareable link per invoice; opening it mints a fresh Commerce Hub Hosted Checkout session (currently blocked — see [Known limitation](#known-limitation-hosted-checkout-blocked) below)
+- **Transaction history** and **webhook log** viewers
+- **Team login gate** — the staff-facing pages require sign-in (see [Access control](#access-control)); the customer-facing `/pay/{invoice}` links stay public
+- **Dashboard stats + tabs** on the main page
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Built at the package level but not wired into this demo's UI:** Apple Pay / Google Pay wallet charges (`FiservCommerceHub::chargeWithWallet()`) and idempotent retries (`ChargeRequest::$idempotencyKey`). Both are implemented and tested in the package itself — see its README — just not exposed as demo UI yet, since neither has a natural form-based interaction to demo.
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Then fill in `.env` — see [Environment variables](#environment-variables) below — and serve it with Herd (or `php artisan serve`).
 
-## Contributing
+### The package is a local path dependency
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+`composer.json` points at the package via a symlinked path repository, not Packagist:
 
-## Code of Conduct
+```json
+"repositories": [
+    { "type": "path", "url": "../miamilife-crm/packages/laravel-fiserv-commercehub", "options": { "symlink": true } }
+]
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+This means `../miamilife-crm/packages/laravel-fiserv-commercehub` must exist relative to this app for `composer install` to resolve it. Because it's symlinked, editing the package's source directly (e.g. in an IDE opened at the miamilife-crm repo) is immediately reflected here — no `composer update` needed to pick up edits, only to pick up changes to the package's own `composer.json` (new dependencies, etc).
 
-## Security Vulnerabilities
+## Environment variables
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+# Fiserv Commerce Hub — Terminal API (charges, refunds, cancels, inquiry)
+FISERV_MODE=sandbox
+FISERV_API_KEY=
+FISERV_API_SECRET=
+FISERV_MERCHANT_ID=
+FISERV_TERMINAL_ID=10000001
 
-## License
+# Hosted Checkout (payment links) — requires separate "VAS" product access, see below
+FISERV_HOSTED_PAGE_ID=
+FISERV_HOSTED_PAGE_VERSION=1
+FISERV_HOSTED_SDK_VERSION=v1
+FISERV_HOSTED_SDK_URL=
+FISERV_HOSTED_ENV=CERT
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Demo access gate — one shared team login, not a real user system
+DEMO_AUTH_USERNAME=
+DEMO_AUTH_PASSWORD=
+```
+
+Get `FISERV_API_KEY` / `FISERV_API_SECRET` / `FISERV_MERCHANT_ID` by registering at [developer.fiserv.com](https://developer.fiserv.com) (product: **CommerceHub**), which issues a pre-generated Test Sandbox Key — or through your Fiserv/Bank of America merchant rep. Full config reference lives in the package's `config/fiserv.php`.
+
+## Access control
+
+The staff-facing pages (charge/void/refund harness, invoices admin, transaction history, webhook logs) require signing in with the single shared team login from `DEMO_AUTH_USERNAME` / `DEMO_AUTH_PASSWORD`. This is **not** a real user system — one shared password, no registration, no per-person accounts — just enough to keep a sandbox with a real (if fake-money) payment integration off the open internet. Change the password any time by editing `.env`; it takes effect on the next login attempt, no migration needed.
+
+The customer-facing `/pay/{invoice}` payment link pages are deliberately **outside** this gate (see `routes/web.php` — they're the one route group not wrapped in the `demo.auth` middleware), so a link you share with an actual test "customer" doesn't require your team's internal login.
+
+See `app/Http/Middleware/EnsureDemoAuthenticated.php` and `app/Http/Controllers/DemoAuthController.php` for the implementation.
+
+## Simulation mode
+
+Set `FISERV_SIMULATE_SUCCESS=true` to get instant mocked-approved responses without hitting the network at all — useful if the sandbox is down or you just want to click through the UI. The package's `CommerceHubService` checks this flag at the top of every method and short-circuits before building a request. Leave it `false` (the default) to actually exercise the sandbox, which is what this demo is for.
+
+## Known limitation: Hosted Checkout blocked
+
+The Invoices → payment link flow calls Commerce Hub's Security Credentials API (`/payments-vas/v1/security/credentials`), which is gated behind a separate "Value Added Services" (VAS) product entitlement from the core Terminal API this sandbox key already has. Right now that returns `401 ApiKey and/or Authentication supplied are invalid` — confirmed live, not a bug in this app or the package. Fiserv needs to enable VAS for this sandbox account before payment links (and Tokenization / Risk Assessment / 3-D Secure) will work. Charges, pre-auth/capture, void, and refund are all on the Terminal API and unaffected.
+
+## Routes
+
+| Route | Auth | Purpose |
+|---|---|---|
+| `GET /login`, `POST /login`, `POST /logout` | — | Team sign-in |
+| `GET /` | gated | Charge / Pre-Auth / Capture / Void / Refund / Inquire harness |
+| `GET /invoices`, `POST /invoices` | gated | Create payment-link invoices |
+| `GET /transactions` | gated | Every attempt made through this app |
+| `GET /webhook-logs` | gated | Every webhook Commerce Hub has sent this app |
+| `GET /pay/{invoice}`, `GET /pay/{invoice}/complete` | **public** | The actual customer-facing payment link |
+
+## Project structure
+
+```
+app/Http/Controllers/
+  FiservDemoController.php        Charge/Pre-Auth/Capture/Void/Refund/Inquire + dashboard stats
+  FiservPaymentLinkController.php Invoices + Hosted Checkout payment links
+  DemoAuthController.php          Team login gate
+app/Http/Middleware/
+  EnsureDemoAuthenticated.php     Gates staff routes behind the session flag DemoAuthController sets
+app/Models/
+  DemoTransaction.php             Every attempt made through this app (successes and failures)
+  DemoInvoice.php                 Payment-link invoices
+resources/views/fiserv/
+  layout.blade.php                Shared chrome: nav, branding, badges, tabs/stat-tile CSS, JS helpers
+  demo.blade.php                  Main harness (tabs + dashboard strip)
+  invoices.blade.php, transactions.blade.php, webhook-logs.blade.php
+  login.blade.php                 Team sign-in
+  pay.blade.php, pay-result.blade.php   Customer-facing, public, no staff nav
+```
+
+## Testing
+
+This app doesn't carry its own test suite beyond the Laravel default — the payment logic itself is tested in the package (`composer test` from `packages/laravel-fiserv-commercehub`). Verification of this app's own behavior (auth gate, dashboard stats, tabs) has been done by hand against a running instance rather than automated feature tests.
