@@ -17,6 +17,30 @@ at all.
       issued automatically. If VAS was *just* turned on, this step may still be
       pending on Fiserv's side.
 
+## 0.5. Open questions for the Fiserv/BofA rep (found 2026-08-01)
+
+Signed into Developer Studio and checked the **MiamiLife CRM - Sandbox** workspace
+directly. Three things didn't work and aren't something to debug on our end first —
+raise these with Fiserv/BofA before assuming they're app bugs:
+
+- [ ] **Notification Hub (webhook config) is stuck.** It requires picking a "Client
+      ID" from a dropdown before showing any notification preferences, but the
+      dropdown is empty — even though Credentials clearly shows a Client ID of
+      `ccci` on both the MID (`100008000003683`) and the API key
+      (`comhub-cert-ccci-miamilife_crm_sandbox_key`). "Select MID(s) to bulk edit"
+      hits the same "Please select a Client ID first" wall. Ask: why is the Client
+      ID dropdown in Notification Hub empty despite `ccci` existing on our
+      credentials, and where do we actually register the webhook URL?
+- [ ] **Hosted Pages tab never finishes loading** (infinite spinner, no error) —
+      consistent with VAS not being enabled yet. Re-check after VAS lands Monday;
+      if still stuck, that's the same rep conversation.
+- [ ] **No merchant back-office / transaction management portal found.**
+      Developer Studio (Workspace) is credentials + developer tooling only — no
+      way to view live transactions, issue a refund by hand, or reconcile
+      settlement from a UI. Ask: what's the actual merchant-facing portal for
+      that, separate from Developer Studio, for a Bank of America Merchant
+      Services-settled Commerce Hub account?
+
 ## 1. Mint a real Hosted Checkout session
 
 - [ ] Go to **Invoices / payment links** → create a test invoice → open its link.
