@@ -21,6 +21,14 @@
 /storage/*.key
 /storage/pail
 /vendor
+
+# Intentionally NOT tracked: composer.json declares mlytorres/laravel-fiserv-commercehub
+# via a local symlinked path repo (for live-editable dev against the sibling
+# ../miamilife-crm checkout) with a git VCS repo as fallback for any environment
+# without that sibling checkout (production, CI, another machine). A single
+# committed lock file can only pin ONE of those two sources — see README.md
+# ("Installing the Fiserv package") before re-adding this to git.
+composer.lock
 _ide_helper.php
 Homestead.json
 Homestead.yaml

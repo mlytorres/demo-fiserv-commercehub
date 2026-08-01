@@ -31,17 +31,25 @@ php artisan migrate
 
 Then fill in `.env` — see [Environment variables](#environment-variables) below — and serve it with Herd (or `php artisan serve`).
 
-### The package is a local path dependency
+### Installing the Fiserv package: two repositories, on purpose
 
-`composer.json` points at the package via a symlinked path repository, not Packagist:
+`composer.json` declares `mlytorres/laravel-fiserv-commercehub` via **two** repositories:
 
 ```json
 "repositories": [
-    { "type": "path", "url": "../miamilife-crm/packages/laravel-fiserv-commercehub", "options": { "symlink": true } }
+    { "type": "path", "url": "../miamilife-crm/packages/laravel-fiserv-commercehub", "options": { "symlink": true } },
+    { "type": "vcs", "url": "https://github.com/mlytorres/laravel-fiserv-commercehub" }
 ]
 ```
 
-This means `../miamilife-crm/packages/laravel-fiserv-commercehub` must exist relative to this app for `composer install` to resolve it. Because it's symlinked, editing the package's source directly (e.g. in an IDE opened at the miamilife-crm repo) is immediately reflected here — no `composer update` needed to pick up edits, only to pick up changes to the package's own `composer.json` (new dependencies, etc).
+- **Local dev** (this repo checked out next to `miamilife-crm`, e.g. on your own Herd setup): resolves via the **path** repo, symlinked — editing the package's source directly (e.g. in an IDE opened at the miamilife-crm repo) is reflected here immediately, no reinstall needed.
+- **Any environment without that sibling checkout** — production, CI, a teammate's machine, another server: the path repo finds nothing there, so Composer falls through to the **vcs** repo and pulls `mlytorres/laravel-fiserv-commercehub` straight from GitHub instead.
+
+**`composer.lock` is deliberately not committed** (see `.gitignore`) specifically because of this. A lock file pins a dependency to *one* resolved source; if we committed a lock generated locally (path-resolved) and shipped it to production, `composer install` there would try to reproduce that exact path source, find it missing, and hard-fail with `Source path "../miamilife-crm/..." is not found` — `composer install` trusts the lock file completely and does not fall back to another declared repository the way a fresh resolve (`composer update`) does. Every environment running `composer install` for the first time (no local lock yet) resolves fresh and correctly picks whichever source actually exists there.
+
+If you ever do want a committed lock for full reproducibility of every *other* dependency, generate it specifically in an environment without the sibling `miamilife-crm` checkout (so it locks this one package to the vcs source, not the path) — then local dev will need to run `composer update mlytorres/laravel-fiserv-commercehub` once to flip it back to the live path for editing.
+
+**Keeping GitHub in sync:** the vcs fallback pulls whatever's pushed to `github.com/mlytorres/laravel-fiserv-commercehub` (branch `main`, since `composer.json` requires `dev-main`). Local path-repo development doesn't require pushing anything — but production/CI installs won't see package changes until they're pushed to that repo.
 
 ## Environment variables
 

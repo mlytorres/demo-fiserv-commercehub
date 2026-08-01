@@ -89,6 +89,10 @@
             "options": {
                 "symlink": true
             }
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/mlytorres/laravel-fiserv-commercehub"
         }
     ],
     "minimum-stability": "stable",
