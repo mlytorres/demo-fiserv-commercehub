@@ -18,6 +18,7 @@ Route::middleware('demo.auth')->group(function (): void {
     Route::post('/void', [FiservDemoController::class, 'void'])->name('fiserv.demo.void');
     Route::post('/refund', [FiservDemoController::class, 'refund'])->name('fiserv.demo.refund');
     Route::post('/inquire', [FiservDemoController::class, 'inquire'])->name('fiserv.demo.inquire');
+    Route::post('/wallet', [FiservDemoController::class, 'wallet'])->name('fiserv.demo.wallet');
     Route::get('/webhook-logs', [FiservDemoController::class, 'webhookLogs'])->name('fiserv.demo.webhook-logs');
     Route::get('/transactions', [FiservDemoController::class, 'transactions'])->name('fiserv.demo.transactions');
 

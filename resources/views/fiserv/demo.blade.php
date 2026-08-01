@@ -47,6 +47,7 @@
         <button type="button" class="tab-btn" data-tab="void">Void</button>
         <button type="button" class="tab-btn" data-tab="refund">Refund</button>
         <button type="button" class="tab-btn" data-tab="inquire">Inquire</button>
+        <button type="button" class="tab-btn" data-tab="wallets">Wallets</button>
     </div>
 
     <div class="tab-panel" data-tab-panel="charge">
@@ -169,6 +170,38 @@
                 <label>Transaction ID</label>
                 <input type="text" name="transaction_id" value="{{ old('transaction_id', $lastTransactionId) }}" placeholder="from a charge result below" required>
                 <button type="submit">Check status</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="tab-panel" data-tab-panel="wallets">
+        <div class="card">
+            <h2>Apple Pay / Google Pay</h2>
+            <p class="hint" style="margin-top: -6px; margin-bottom: 12px;">
+                Wallet charges use the same Terminal API credentials as a regular charge — Commerce Hub confirmed live
+                that no separate "Value Added Services" entitlement is needed here, unlike Hosted Checkout. The blocker
+                is different: a real wallet token can only come from Apple Pay JS / Google Pay JS running in an actual
+                browser session against a registered merchant. Apple Pay additionally only runs in Safari (never
+                Chrome) and requires a real public HTTPS domain with a merchant-verification file — a local sandbox
+                like this one can't produce either. So the buttons below always send a structurally-correct but fake
+                token and only work with simulation mode on — sending a fake token to the real sandbox would just fail
+                on signature validation, which doesn't prove anything useful beyond what's already confirmed in
+                the package's own tests.
+            </p>
+
+            @if (! $simulating)
+                <div class="status-banner warn" style="margin-bottom: 12px;">
+                    Set <code>FISERV_SIMULATE_SUCCESS=true</code> in <code>.env</code> to try these — see above for why.
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('fiserv.demo.wallet') }}" data-loading-label="Charging…">
+                @csrf
+                <label>Amount (USD)</label>
+                <input type="text" name="amount" value="{{ old('amount', '10.00') }}" required>
+                <input type="hidden" name="wallet_type" id="wallet_type" value="apple_pay">
+                <button type="submit" onclick="document.getElementById('wallet_type').value='apple_pay'" @disabled(! $simulating)>Simulate Apple Pay charge</button>
+                <button type="submit" class="secondary" onclick="document.getElementById('wallet_type').value='google_pay'" @disabled(! $simulating)>Simulate Google Pay charge</button>
             </form>
         </div>
     </div>

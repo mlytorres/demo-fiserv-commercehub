@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Throwable;
 use Mlytorres\FiservCommerceHub\DTOs\ChargeRequest;
+use Mlytorres\FiservCommerceHub\DTOs\WalletChargeRequest;
 use Mlytorres\FiservCommerceHub\Enums\ReversalReasonCode;
 use Mlytorres\FiservCommerceHub\Facades\FiservCommerceHub;
 use Mlytorres\FiservCommerceHub\Models\WebhookLog;
@@ -29,6 +30,7 @@ class FiservDemoController extends Controller
 
         return view('fiserv.demo', [
             'configured' => FiservCommerceHub::isConfigured(),
+            'simulating' => (bool) config('fiserv.simulate'),
             'result' => $result,
             'error' => session('error'),
             'lastTransactionId' => session('last_transaction_id'),
@@ -73,6 +75,7 @@ class FiservDemoController extends Controller
             'void' => 'void',
             'refund' => 'refund',
             'inquire' => 'inquire',
+            'apple_pay', 'google_pay' => 'wallets',
             default => 'charge', // covers charge, pre_auth, and no result yet
         };
     }
@@ -267,6 +270,78 @@ class FiservDemoController extends Controller
             ]);
         } catch (Throwable $exception) {
             return $this->rememberFailure('inquire', $exception);
+        }
+    }
+
+    /**
+     * Simulate an Apple Pay / Google Pay charge. Real wallet tokens can only be
+     * produced by Apple Pay JS / Google Pay JS running in a real browser context
+     * against a registered merchant — Apple Pay additionally requires Safari and
+     * a real public HTTPS domain, neither of which this local sandbox has. So
+     * this always builds a structurally-plausible-but-fake token (matching the
+     * shapes documented on {@see WalletChargeRequest}) and only proceeds when
+     * FISERV_SIMULATE_SUCCESS is on — sending a fake token to the real sandbox
+     * would just fail on signature/crypto validation, which wouldn't prove
+     * anything useful. This exercises chargeWithWallet() and the demo's own
+     * result/toast/transaction-history wiring, not real wallet processing.
+     */
+    public function wallet(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'wallet_type' => ['required', 'string', 'in:apple_pay,google_pay'],
+        ]);
+
+        if (! config('fiserv.simulate')) {
+            return redirect()->route('fiserv.demo.index')->with(
+                'error',
+                'Wallet testing requires FISERV_SIMULATE_SUCCESS=true — this button builds a fake token, and Commerce Hub would correctly reject that against the real sandbox. See the Wallets tab for why real Apple Pay/Google Pay can\'t be tested from here.'
+            );
+        }
+
+        $orderId = 'DEMO-WALLET-'.now()->timestamp;
+
+        try {
+            $walletRequest = $validated['wallet_type'] === 'apple_pay'
+                ? WalletChargeRequest::applePay(
+                    applePayMerchantId: 'merchant.com.miamilifecosmetic.demo',
+                    paymentData: [
+                        'data' => base64_encode('SIMULATED'),
+                        'header' => [
+                            'ephemeralPublicKey' => base64_encode('SIMULATED'),
+                            'publicKeyHash' => base64_encode('SIMULATED'),
+                            'transactionId' => bin2hex(random_bytes(16)),
+                        ],
+                        'signature' => base64_encode('SIMULATED'),
+                        'version' => 'EC_v1',
+                    ],
+                    amount: (float) $validated['amount'],
+                    orderId: $orderId,
+                )
+                : WalletChargeRequest::googlePay(
+                    tokenizationData: [
+                        'signature' => base64_encode('SIMULATED'),
+                        'protocolVersion' => 'ECv2',
+                        'signedMessage' => base64_encode('SIMULATED'),
+                    ],
+                    amount: (float) $validated['amount'],
+                    orderId: $orderId,
+                );
+
+            $result = FiservCommerceHub::chargeWithWallet($walletRequest);
+
+            return $this->rememberResult([
+                'action' => $validated['wallet_type'],
+                'approved' => $result->isApproved(),
+                'status_label' => $result->status->label(),
+                'transaction_id' => $result->transactionId,
+                'order_id' => $orderId,
+                'amount' => $validated['amount'],
+                'failure_reason' => $result->failureReason,
+                'raw' => $result->rawResponse,
+            ]);
+        } catch (Throwable $exception) {
+            return $this->rememberFailure($validated['wallet_type'], $exception);
         }
     }
 
