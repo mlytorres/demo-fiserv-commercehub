@@ -12,12 +12,16 @@ Everything here runs against Fiserv's live cert sandbox (not mocks) unless simul
 - **Refund** — against an already-settled transaction
 - **Status inquiry** — look up any transaction id
 - **Test-card presets** — real Fiserv-documented sandbox cards for approvals per network, plus CVV/AVS match-response simulation (there's no self-service decline simulator in this sandbox tier — see the note on the Charge tab)
-- **Invoices / payment links** — generates a shareable link per invoice; opening it mints a fresh Commerce Hub Hosted Checkout session (currently blocked — see [Known limitation](#known-limitation-hosted-checkout-blocked) below)
+- **Invoices / payment links** — generates a shareable link per invoice; opening it mints a fresh Commerce Hub Hosted Checkout session (currently blocked — see [Known limitation](#known-limitation-hosted-checkout-blocked) below). In simulation mode, the pay page swaps the real SDK for a stand-in panel (pick success/declined/abandoned) so the whole invoice → pay → complete loop is testable today — see [Simulation mode](#simulation-mode).
+- **Wallets tab** — simulate-only Apple Pay / Google Pay charges via `FiservCommerceHub::chargeWithWallet()`. Real wallet tokens can't be produced from this app (Apple Pay JS only runs in Safari and needs a real public domain; Google Pay needs live client-side wiring this demo doesn't have), so the buttons always build a structurally-correct-but-fake token and only work with simulation mode on. Worth knowing: wallet charges use the same Terminal API credentials as a regular charge — confirmed live, no separate VAS entitlement needed here, unlike Hosted Checkout.
 - **Transaction history** and **webhook log** viewers
 - **Team login gate** — the staff-facing pages require sign-in (see [Access control](#access-control)); the customer-facing `/pay/{invoice}` links stay public
 - **Dashboard stats + tabs** on the main page
+- **Toast notifications** — every action (Charge, Capture, Void, Refund, Inquire, Wallets, payment links) surfaces a dismissable success/warning/declined toast in addition to the inline result card.
 
-**Built at the package level but not wired into this demo's UI:** Apple Pay / Google Pay wallet charges (`FiservCommerceHub::chargeWithWallet()`) and idempotent retries (`ChargeRequest::$idempotencyKey`). Both are implemented and tested in the package itself — see its README — just not exposed as demo UI yet, since neither has a natural form-based interaction to demo.
+**Built at the package level but not wired into this demo's UI:** idempotent retries (`ChargeRequest::$idempotencyKey`) — implemented and tested in the package itself (see its README), just not exposed as demo UI yet since it doesn't have a natural form-based interaction to demo (it's a "resubmit the exact same request" guarantee, not a distinct operation).
+
+See [`MONDAY-VAS-CHECKLIST.md`](MONDAY-VAS-CHECKLIST.md) for what to verify once Fiserv enables VAS/Hosted Checkout on this sandbox account.
 
 ## Setup
 
@@ -94,6 +98,11 @@ See `app/Http/Middleware/EnsureDemoAuthenticated.php` and `app/Http/Controllers/
 
 Set `FISERV_SIMULATE_SUCCESS=true` to get instant mocked-approved responses without hitting the network at all — useful if the sandbox is down or you just want to click through the UI. The package's `CommerceHubService` checks this flag at the top of every method and short-circuits before building a request. Leave it `false` (the default) to actually exercise the sandbox, which is what this demo is for.
 
+Two parts of the UI change behavior specifically because of this flag, not just the response speed:
+
+- **Invoices → pay page**: normally loads Commerce Hub's real Hosted Checkout SDK. In simulation mode it can't (a real SDK against a fake session would just fail), so it shows a stand-in panel instead — pick success/declined/abandoned and it jumps straight to `complete()` with the same query params Commerce Hub's real redirect would send.
+- **Wallets tab**: the Apple Pay / Google Pay buttons are only enabled in simulation mode, for the same reason — a real wallet token can't be produced here, and sending a fake one to the real sandbox would just fail signature validation rather than prove anything.
+
 ## Known limitation: Hosted Checkout blocked
 
 The Invoices → payment link flow calls Commerce Hub's Security Credentials API (`/payments-vas/v1/security/credentials`), which is gated behind a separate "Value Added Services" (VAS) product entitlement from the core Terminal API this sandbox key already has. Right now that returns `401 ApiKey and/or Authentication supplied are invalid` — confirmed live, not a bug in this app or the package. Fiserv needs to enable VAS for this sandbox account before payment links (and Tokenization / Risk Assessment / 3-D Secure) will work. Charges, pre-auth/capture, void, and refund are all on the Terminal API and unaffected.
@@ -103,7 +112,8 @@ The Invoices → payment link flow calls Commerce Hub's Security Credentials API
 | Route | Auth | Purpose |
 |---|---|---|
 | `GET /login`, `POST /login`, `POST /logout` | — | Team sign-in |
-| `GET /` | gated | Charge / Pre-Auth / Capture / Void / Refund / Inquire harness |
+| `GET /` | gated | Charge / Pre-Auth / Capture / Void / Refund / Inquire / Wallets harness |
+| `POST /wallet` | gated | Simulate-only Apple Pay / Google Pay charge |
 | `GET /invoices`, `POST /invoices` | gated | Create payment-link invoices |
 | `GET /transactions` | gated | Every attempt made through this app |
 | `GET /webhook-logs` | gated | Every webhook Commerce Hub has sent this app |
