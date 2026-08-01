@@ -157,10 +157,45 @@
         th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e0e0e0; }
         code { font-size: 12px; }
 
+        /* Toasts: immediate glanceable feedback for an action (approved/declined/
+           pending/error) on page load, separate from the full "Last result" card —
+           the toast is the "did it work?" answer, the card is the detail underneath. */
+        .toast-container {
+            position: fixed; top: 16px; right: 16px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 8px;
+            width: 340px; max-width: calc(100vw - 32px);
+        }
+        .toast {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: #fff; border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .1);
+            opacity: 0; transform: translateX(16px);
+            transition: opacity .18s ease-out, transform .18s ease-out;
+        }
+        .toast.toast-visible { opacity: 1; transform: translateX(0); }
+        .toast-icon {
+            flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; margin-top: 1px;
+        }
+        .toast-success .toast-icon { background: var(--green-bg); color: var(--green-text); }
+        .toast-declined .toast-icon { background: var(--red-bg); color: var(--red-text); }
+        .toast-warning .toast-icon { background: var(--amber-bg); color: var(--amber-text); }
+        .toast-body { flex: 1; min-width: 0; }
+        .toast-title { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+        .toast-message { font-size: 12px; color: #666; margin-top: 2px; word-break: break-word; }
+        .toast-close {
+            flex-shrink: 0; border: none; background: none; cursor: pointer;
+            font-size: 15px; line-height: 1; color: #aaa; padding: 2px;
+        }
+        .toast-close:hover { color: #444; }
+
         @stack('styles')
     </style>
 </head>
 <body class="@yield('body_class')">
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
     @hasSection('nav')
         @yield('nav')
     @else
@@ -213,6 +248,58 @@
                 });
             });
         });
+
+        // Toast notifications — call window.fiservToast(title, message, tone) from any
+        // page's own script block (tone: 'success' | 'declined' | 'warning'). Used to
+        // surface an immediate pass/fail signal for an action on page load, since these
+        // are server-rendered redirects (not AJAX) — there's no in-flight request to
+        // react to, just the result already baked into the page when it loads.
+        window.fiservToast = function (title, message, tone) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + tone;
+
+            const icon = document.createElement('div');
+            icon.className = 'toast-icon';
+            icon.textContent = tone === 'success' ? '✓' : tone === 'warning' ? '…' : '✕';
+            toast.appendChild(icon);
+
+            const body = document.createElement('div');
+            body.className = 'toast-body';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'toast-title';
+            titleEl.textContent = title;
+            body.appendChild(titleEl);
+
+            if (message) {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'toast-message';
+                messageEl.textContent = message;
+                body.appendChild(messageEl);
+            }
+
+            toast.appendChild(body);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'toast-close';
+            closeBtn.setAttribute('aria-label', 'Dismiss');
+            closeBtn.textContent = '×';
+            toast.appendChild(closeBtn);
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('toast-visible'));
+
+            const dismiss = () => {
+                toast.classList.remove('toast-visible');
+                setTimeout(() => toast.remove(), 200);
+            };
+            closeBtn.addEventListener('click', dismiss);
+            setTimeout(dismiss, 6000);
+        };
     </script>
 
     @stack('scripts')

@@ -247,4 +247,29 @@
             });
         });
     </script>
+
+    @if ($result || $error)
+        @php
+            if ($error) {
+                // rememberFailure() (e.g. a connection timeout) never reaches Commerce
+                // Hub, so there's no $result — just the exception message.
+                $toastTone = 'declined';
+                $toastTitle = 'Error';
+                $toastMessage = $error;
+            } else {
+                $toastTone = match (true) {
+                    ($result['approved'] ?? false) === true => 'success',
+                    in_array($result['status_label'] ?? null, ['Authorized', 'Waiting'], true) => 'warning',
+                    default => 'declined',
+                };
+                $toastTitle = ucwords(str_replace('_', ' ', $result['action']))
+                    .' — '.($result['status_label'] ?? ($toastTone === 'success' ? 'Approved' : 'Declined'));
+                $toastMessage = $result['failure_reason']
+                    ?? ($result['transaction_id'] ? 'Transaction '.$result['transaction_id'] : null);
+            }
+        @endphp
+        <script>
+            window.fiservToast(@json($toastTitle), @json($toastMessage), @json($toastTone));
+        </script>
+    @endif
 @endpush
