@@ -56,6 +56,51 @@
         }
         nav.top-nav .logout-btn:hover { background: #f0f0f0; color: #333; }
 
+        /* App footer */
+        footer.app-footer {
+            margin-top: 48px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #777;
+        }
+        footer.app-footer .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        footer.app-footer .footer-brand img {
+            height: 22px;
+            width: auto;
+        }
+        footer.app-footer .footer-brand .brand-title {
+            font-weight: 600;
+            color: #333;
+        }
+        footer.app-footer .env-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #555;
+        }
+        footer.app-footer .env-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
         .status-banner { padding: 10px 14px; border-radius: 6px; font-size: 14px; margin-bottom: 20px; }
         .status-banner.ok { background: var(--green-bg); color: var(--green-text); }
         .status-banner.bad { background: var(--red-bg); color: var(--red-text); }
@@ -201,7 +246,7 @@
     @else
         <nav class="top-nav">
             <a class="brand" href="{{ route('fiserv.demo.index') }}">
-                <img src="{{ asset('images/miami-life-logo.png') }}" alt="Miami Life Cosmetic Center">
+                <img src="{{ asset('images/miami-life-icon.png') }}" alt="Miami Life Cosmetic Center">
                 <span class="brand-text">
                     <span class="brand-name">Miami Life Cosmetic Center</span>
                     <span class="brand-subtitle">Fiserv Commerce Hub sandbox · Bank of America Merchant Services</span>
@@ -221,6 +266,18 @@
     @endif
 
     @yield('content')
+
+    <footer class="app-footer">
+        <div class="footer-brand">
+            <img src="{{ asset('images/miami-life-icon.png') }}" alt="Miami Life Cosmetic Center">
+            <span class="brand-title">Miami Life Cosmetic Center</span>
+            <span>·</span>
+            <span>© {{ date('Y') }}</span>
+        </div>
+        <div class="env-badge">
+            <span class="dot"></span> Fiserv Commerce Hub Sandbox · Bank of America Merchant Services
+        </div>
+    </footer>
 
     <script>
         // Disable + relabel the submit button while a sandbox round-trip is in
